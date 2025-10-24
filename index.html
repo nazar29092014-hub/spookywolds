@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpookyWorld</title>
+<style>
+  body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    height: 100%;
+    overflow-x: hidden;
+    background: linear-gradient(-45deg, #1b2735, #090a0f, #1b2735, #090a0f);
+    background-size: 400% 400%;
+    animation: gradientBG 20s ease infinite;
+    color: #fff;
+  }
+  @keyframes gradientBG {
+    0% {background-position: 0% 50%;}
+    50% {background-position: 100% 50%;}
+    100% {background-position: 0% 50%;}
+  }
+
+  /* Навигация с аватаркой, языком и валютой */
+  .navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0,0,0,0.5);
+    padding: 10px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .navbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .server-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .server-name {
+    font-weight: bold;
+    color: #fff;
+    font-size: 18px;
+  }
+
+  .navbar-center {
+    display: flex;
+    gap: 25px;
+  }
+
+  .navbar-center a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.3s;
+  }
+
+  .navbar-center a:hover { color: #ff6fd8; }
+
+  .navbar-right {
+    display: flex;
+    gap: 10px;
+  }
+
+  .navbar-right select {
+    padding: 5px 8px;
+    border-radius: 6px;
+    border: 1px solid #ff6fd8;
+    background: #1b2735;
+    color: #fff;
+    font-weight: bold;
+    outline: none;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .navbar-right select:hover {
+    border-color: #ff2ec0;
+  }
+
+  @media (max-width: 768px) {
+    .navbar-center { display: none; }
+    .navbar { flex-wrap: wrap; justify-content: space-between; }
+  }
+
+  section { padding: 80px 20px; text-align: center; }
+  h1 { margin-bottom: 40px; text-transform: uppercase; letter-spacing: 2px; }
+
+  .cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; }
+  .card {
+    background: rgba(0,0,0,0.6);
+    border: 2px solid #ff6fd8;
+    border-radius: 15px;
+    padding: 25px;
+    width: 200px;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .card:hover { transform: translateY(-10px); box-shadow: 0 0 20px #ff6fd8; }
+  .card h3 { margin: 15px 0; }
+  .card p { margin: 10px 0; }
+  .buy-btn {
+    background: #ff6fd8;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+  }
+  .buy-btn:hover { background: #ff2ec0; }
+
+  html { scroll-behavior: smooth; }
+
+  footer {
+    text-align: center;
+    padding: 25px 0;
+    background: rgba(0,0,0,0.5);
+    font-size: 14px;
+  }
+
+  #rules pre {
+    text-align: left;
+    max-width: 900px;
+    margin: 0 auto;
+    background: rgba(0,0,0,0.6);
+    padding: 20px;
+    border-radius: 15px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    line-height: 1.6;
+  }
+
+  /* Модальное окно */
+  #modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 999;
+  }
+  #modal.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+  #modal-content {
+    background: #1b2735;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    animation: fadeIn 0.3s ease;
+  }
+  #modal-content h2 { margin-bottom: 20px; }
+  #modal-content input {
+    padding: 10px;
+    width: 80%;
+    border-radius: 8px;
+    border: 1px solid #ff6fd8;
+    margin-bottom: 20px;
+    outline: none;
+    font-size: 16px;
+  }
+  #modal-content button {
+    background: #ff6fd8;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  #modal-content button:hover { background: #ff2ec0; }
+
+  @keyframes fadeIn {
+    0% { transform: translateY(-20px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Навигация -->
+<nav class="navbar">
+  <div class="navbar-left">
+    <img src="AVATAR_URL" alt="Аватар сервера" class="server-avatar">
+    <span class="server-name">SpookyWorld</span>
+  </div>
+
+  <div class="navbar-center">
+    <a href="#privileges">Привилегии</a>
+    <a href="#cases">Кейсы</a>
+    <a href="#solars">Соллары</a>
+    <a href="#ip">IP</a>
+    <a href="#rules">Правила</a>
+  </div>
+
+  <div class="navbar-right">
+    <select id="language">
+      <option value="ru">Рус</option>
+      <option value="ua">Укр</option>
+      <option value="en">Анг</option>
+    </select>
+
+    <select id="currency">
+      <option value="rub">₽</option>
+      <option value="uah">₴</option>
+      <option value="usdt">USDT</option>
+    </select>
+  </div>
+</nav>
+
+<section id="privileges">
+  <h1>Привилегии</h1>
+  <div class="cards">
+    <div class="card"><h3>Premium</h3><p>39 ₽</p><button class="buy-btn" onclick="openModal('Premium')">Купить</button></div>
+    <div class="card"><h3>Mega</h3><p>59 ₽</p><button class="buy-btn" onclick="openModal('Mega')">Купить</button></div>
+    <div class="card"><h3>Ultra</h3><p>99 ₽</p><button class="buy-btn" onclick="openModal('Ultra')">Купить</button></div>
+    <div class="card"><h3>Titan</h3><p>149 ₽</p><button class="buy-btn" onclick="openModal('Titan')">Купить</button></div>
+    <div class="card"><h3>King</h3><p>249 ₽</p><button class="buy-btn" onclick="openModal('King')">Купить</button></div>
+    <div class="card"><h3>Dragon</h3><p>449 ₽</p><button class="buy-btn" onclick="openModal('Dragon')">Купить</button></div>
+    <div class="card"><h3>Phantom</h3><p>999 ₽</p><button class="buy-btn" onclick="openModal('Phantom')">Купить</button></div>
+  </div>
+</section>
+
+<section id="cases">
+  <h1>Кейсы</h1>
+  <div class="cards">
+    <div class="card"><h3>Кейс с Соларами</h3><p>29 ₽</p><button class="buy-btn" onclick="openModal('Кейс с Соларами')">Купить</button></div>
+    <div class="card"><h3>Кейс с Титулами</h3><p>39 ₽</p><button class="buy-btn" onclick="openModal('Кейс с Титулами')">Купить</button></div>
+    <div class="card"><h3>Кейс с Донатом</h3><p>49 ₽</p><button class="buy-btn" onclick="openModal('Кейс с Донатом')">Купить</button></div>
+  </div>
+</section>
+
+<section id="solars">
+  <h1>Соллары</h1>
+  <div class="cards">
+    <div class="card"><h3>1 ₽</h3><button class="buy-btn" onclick="openModal('1 ₽')">Купить</button></div>
+  </div>
+</section>
+
+<section id="ip">
+  <h1>IP Сервера</h1>
+  <p>play.spookyworld.fun</p>
+</section>
+
+<section id="rules">
+  <h1>Правила</h1>
+  <pre>
+1.0 - Не оскорблять игроков - **мут 2 ч**
+1.1 - Не оскорблять администрации или модерации -> **мут 1ч -> бан 3 д**
+1.2 - Краш Гифки - **бан 3 дня**
+1.3 - Угрозы участников Сервера - **мут 10 ч**
+1.4 - Неадекватное поведение - **Мут 2 ч**
+1.5 - Спам реакциями - **мут 3 ч**
+2.0 - Распространение личной информации других людей, докс, ДДОС, угрозы доксом другим людям - **Бан навсегда**
+2.2 - Материалы неприятного содержания (Пример: Травмы/Шок Контент) - **Бан навсегда**
+2.3 - Использование программ для воспроизведения звуков или изменения голоса против воли большинства участников - **мут -> бан 3д**
+2.4 - Намеренное копирование чужого профиля - **Предупреждение -> Бан 1 д**
+2.5 - Никнейм из символов, которые делают пинг невозможным, а также символы сильно расширяющие ник - **Предупреждение -> Cмена ника**
+3.0 - Читы, Взлом сервера -> **Бан навсегда**
+3.2 - Реклама любых каналов/дискорд серверов/телеграм каналов -> **мут 2ч -> бан 5д**
+  </pre>
+</section>
+
+<footer>
+  © 2025 SpookyWorld — by BMY_offical
+</footer>
+
+<!-- Модальное окно -->
+<div id="modal">
+  <div id="modal-content">
+    <h2>Покупка</h2>
+    <p id="item-name"></p>
+    <input type="text" id="nickname" placeholder="Введите ваш ник">
+    <br>
+    <button onclick="sendTelegram()">Отправить</button>
+  </div>
+</div>
+
+<script>
+let selectedItem = "";
+
+function openModal(item) {
+  selectedItem = item;
+  document.getElementById('item-name').textContent = "Вы выбрали: " + item;
+  document.getElementById('nickname').value = "";
+  document.getElementById('modal').classList.add('show');
+}
+
+function sendTelegram() {
+  const nickname = document.getElementById('nickname').value.trim();
+  if(!nickname) { alert("Введите ваш ник!"); return; }
+  const text = `Хочу купить: ${selectedItem} Ник: ${nickname}`;
+  window.open("https://t.me/BMY_offical?text=" + encodeURIComponent(text), "_blank");
+  document.getElementById('modal').classList.remove('show');
+}
+
+document.getElementById('modal').addEventListener('click', (e)=>{
+  if(e.target.id === 'modal') document.getElementById('modal').classList.remove('show');
+});
+
+// Переключатели языка и валюты
+const translations = {
+  ru: {privileges:"Привилегии",cases:"Кейсы",solars:"Соллары",ip:"IP",rules:"Правила",buy:"Купить"},
+  ua: {privileges:"Привілеї",cases:"Кейси",solars:"Солари",ip:"IP",rules:"Правила",buy:"Купити"},
+  en: {privileges:"Privileges",cases:"Cases",solars:"Solars",ip:"Server IP",rules:"Rules",buy:"Buy"}
+};
+
+const prices = {
+  rub: {Premium:"39 ₽",Mega:"59 ₽",Ultra:"99 ₽",Titan:"149 ₽",King:"249 ₽",Dragon:"449 ₽",Phantom:"999 ₽","Кейс с Соларами":"29 ₽","Кейс с Титулами":"39 ₽","Кейс с Донатом":"49 ₽","1 ₽":"1 ₽"},
+  uah: {Premium:"15 ₴",Mega:"22 ₴",Ultra:"37 ₴",Titan:"56 ₴",King:"93 ₴",Dragon:"168 ₴",Phantom:"374 ₴","Кейс с Соларами":"11 ₴","Кейс с Титулами":"15 ₴","Кейс с Донатом":"18 ₴","1 ₽":"0.38 ₴"},
+  usdt: {Premium:"0.50 USDT",Mega:"0.75 USDT",Ultra:"1.25 USDT",Titan:"1.90 USDT",King:"3.15 USDT",Dragon:"5.65 USDT",Phantom:"12.50 USDT","Кейс с Соларами":"0.36 USDT","Кейс с Титулами":"0.50 USDT","Кейс с Донатом":"0.65 USDT","1 ₽":"0.012 USDT"}
+};
+
+function updateLanguage(lang){
+  document.querySelector('#privileges h1').textContent = translations[lang].privileges;
+  document.querySelector('#cases h1').textContent = translations[lang].cases;
+  document.querySelector('#solars h1').textContent = translations[lang].solars;
+  document.querySelector('#ip h1').textContent = translations[lang].ip;
+  document.querySelector('#rules h1').textContent = translations[lang].rules;
+  document.querySelectorAll('.buy-btn').forEach(btn=>{ btn.textContent = translations[lang].buy; });
+}
+
+function updateCurrency(currency){
+  document.querySelectorAll('.card').forEach(card=>{
+    const title = card.querySelector('h3').textContent;
+    if(prices[currency][title]){
+      const priceElem = card.querySelector('p');
+      if(priceElem) priceElem.textContent = prices[currency][title];
+    }
+  });
+}
+
+document.getElementById('language').addEventListener('change', (e)=>{ updateLanguage(e.target.value); });
+document.getElementById('currency').addEventListener('change', (e)=>{ updateCurrency(e.target.value); });
+
+updateLanguage(document.getElementById('language').value);
+updateCurrency(document.getElementById('currency').value);
+</script>
+
+</body>
+</html>
